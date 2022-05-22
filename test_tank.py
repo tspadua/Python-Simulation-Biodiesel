@@ -8,7 +8,7 @@ import random
 
 config = {
     "host": "localhost",
-    "port": 5002
+    "port": 9000
 }
 
 # Refer to server.py for inherited class
@@ -38,13 +38,13 @@ class TestTank(Server):
                     #           "content" : { "compound_name": 0.75, ... }
                     #       }
                     
-                    if (data['role'] == 'Observe'):
+                    if (data['role'] == 'Orchestrator'):
                         output = self.compound_tank.serialize()
                         sleep(1)
                         output = json.dumps(output)
                         conn.sendall((bytes(output, encoding='utf-8')))
                     else:
-                        self.compound_tank.pour_content(data['content']['oil'])
+                        print(data)
             except:
                 conn.close()
                 print(f"Disconnected: {addr}")

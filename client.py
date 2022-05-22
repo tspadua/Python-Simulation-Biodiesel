@@ -17,12 +17,13 @@ def connectToServer(host, port, message):
         s.sendall(bytes(json.dumps(message), encoding='utf-8'))
         dados = s.recv(1024)
         if (dados):
+            print()
             print(f"Resposta do servidor: {dados.decode()}")
 
 try:
-    start_new_thread(connectToServer, ('localhost', 5000, {"role": "Process"})) # pour oil
-    start_new_thread(connectToServer, ('localhost', 5000, {"role": "Observe"}))
-    start_new_thread(connectToServer, ('localhost', 5002, {"role": "Observe"}))
+    start_new_thread(connectToServer, ('localhost', 5000, {"role": "Orchestrator"}))
+    start_new_thread(connectToServer, ('localhost', 5002, {"role": "Orchestrator"}))
+    start_new_thread(connectToServer, ('localhost', 9000, {"role": "Orchestrator"}))
 except:
     pass
 
