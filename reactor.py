@@ -8,7 +8,7 @@ import random
 
 config = {
     "host": "localhost",
-    "port": 5002,
+    "port": 6000,
     "connection_host": "localhost",
     "connection_port": 9000
 }
