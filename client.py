@@ -20,8 +20,9 @@ def connectToServer(host, port, message):
             print(f"Resposta do servidor: {dados.decode()}")
 
 try:
-    start_new_thread(connectToServer, ('localhost', 5000, {"role": "Observer"}))
-    #start_new_thread(connectToServer, ('localhost', 5001, {"role": "observer"}))
+    start_new_thread(connectToServer, ('localhost', 5000, {"role": "Process"})) # pour oil
+    start_new_thread(connectToServer, ('localhost', 5000, {"role": "Observe"}))
+    start_new_thread(connectToServer, ('localhost', 5002, {"role": "Observe"}))
 except:
     pass
 
