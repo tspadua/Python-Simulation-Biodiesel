@@ -71,13 +71,15 @@ class Decanter():
         #self.next_containers["Glycerin_tank"].sendall(bytes(json.dumps(glycerin_output), encoding='utf-8'))
         #self.next_containers["Washing_tank"].sendall(bytes(json.dumps(washing_solution_output), encoding='utf-8'))
 
+        self.volume = 0
+
     def decant(self):
         print("Entrou no decant")
         self.cycle_count += 1
         self.status = "Working"
-        sleep(self.decanter.rest_time)
+        sleep(5)
         self.status = "Waiting"
-        self.decanter.pass_content()
+        self.pass_content()
 
 
 
