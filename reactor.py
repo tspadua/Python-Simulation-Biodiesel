@@ -10,7 +10,7 @@ config = {
     "host": "localhost",
     "port": 6000,
     "connection_host": "localhost",
-    "connection_port": 9000
+    "connection_port": 6001
 }
 
 class Reactor():

@@ -29,9 +29,11 @@ def connectToServer(host, port, message, type):
 try:
     start_new_thread(connectToServer, ('localhost', 9000, {"role": "Orchestrator"}, "test_output"))
     start_new_thread(connectToServer, ('localhost', 6000, {"role": "Orchestrator"}, "reactor"))
+    start_new_thread(connectToServer, ('localhost', 6001, {"role": "Orchestrator"}, "decanter"))
     start_new_thread(connectToServer, ('localhost', 5000, {"role": "Orchestrator"}, "oil"))
     start_new_thread(connectToServer, ('localhost', 5001, {"role": "Orchestrator"}, "NaOH"))
     start_new_thread(connectToServer, ('localhost', 5002, {"role": "Orchestrator"}, "EtOH"))
+    
     while True:
         print(output["reactor"])
         print(output["oil"])
