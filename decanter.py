@@ -8,13 +8,13 @@ import random
 
 config = {
     "host": "localhost",
-    "port": 6001,
+    "port": 5004,
 
     "connection_host_dryer": "localhost",
     "connection_port_dryer": 9000,
 
     "connection_host_glycerin": "localhost",
-    "connection_port_glycerin": 9000,
+    "connection_port_glycerin": 9001,
 
     "connection_host_washing_tank": "localhost",
     "connection_port_washing_tank": 9000,
@@ -31,7 +31,7 @@ class Decanter():
 
     @property
     def shouldRest(self):
-        if (self.volume >= self.capacity):
+        if (self.volume == self.capacity):
             return True
         else:
             return False
@@ -47,9 +47,8 @@ class Decanter():
         self.next_containers[nickname].connect((host, port))
 
     def receive_content(self, data):
-        if (self.volume + data["volume"] < self.capacity):
+        if (self.volume + data["volume"] <= self.capacity):
             self.volume += data["volume"]
-
             return {"accepted": True}
         else:
             return {"accepted": False}
@@ -66,11 +65,14 @@ class Decanter():
         washing_solution_output = {"role": "Process", "compound": "washing_solution", "volume": 0}
         washing_solution_output['volume'] = self.volume*0.96
 
+        print()
+        print(EtOH_output)
         self.next_containers["EtOH_dryer"].sendall(bytes(json.dumps(EtOH_output), encoding='utf-8'))
-        self.next_containers["Glycerin_tank"].sendall(bytes(json.dumps(glycerin_output), encoding='utf-8'))
-        self.next_containers["Washing_tank"].sendall(bytes(json.dumps(washing_solution_output), encoding='utf-8'))
+        #self.next_containers["Glycerin_tank"].sendall(bytes(json.dumps(glycerin_output), encoding='utf-8'))
+        #self.next_containers["Washing_tank"].sendall(bytes(json.dumps(washing_solution_output), encoding='utf-8'))
 
     def decant(self):
+        print("Entrou no decant")
         self.cycle_count += 1
         self.status = "Working"
         sleep(self.decanter.rest_time)
@@ -101,7 +103,7 @@ class DecanterSocket(Server):
         print("Listening on %s:%d" %(self.host, self.port))
         while True:
             conn, addr = self.s.accept()
-            conn.settimeout(30)
+            #conn.settimeout(30)
             start_new_thread(self.handle_client_thread, (conn, addr))
 
     
@@ -114,14 +116,16 @@ class DecanterSocket(Server):
                     data = json.loads(data.decode("utf-8"))
 
                     if (data['role'] == 'Orchestrator'):
-                        self.decanter.connect_to_tank(config['connection_host'], config['connection_port'], "EtOH_dryer")
-                        self.decanter.connect_to_tank(config['connection_host'], config['connection_port'], "Glycerin_tank")
-                        self.decanter.connect_to_tank(config['connection_host'], config['connection_port'], "Washing_tank")
+
+                        self.decanter.connect_to_tank(config['connection_host_dryer'], config['connection_port_dryer'], "EtOH_dryer")
+                        #self.decanter.connect_to_tank(config['connection_host_glycerin'], config['connection_port_glycerin'], "Glycerin_tank")
+                        #self.decanter.connect_to_tank(config['connection_host_washing_tank'], config['connection_port_washing_tank'], "Washing_tank")
                         while True:
                             try:
                                 output = self.decanter.serialize()
-                                conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
 
+                                conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
+                                print(self.decanter.shouldRest)
                                 if (self.decanter.shouldRest):
                                     self.decanter.decant()
                                 else:
@@ -135,11 +139,11 @@ class DecanterSocket(Server):
                                 #conn.sendall((bytes(json.dumps(output), encoding='utf-8')))
                     else:
 
-                        print(data)
                         output = self.decanter.receive_content(data)
                         conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
 
-            except:
+            except Exception as e:
+                print(e)
                 conn.close()
                 print(f"Disconnected: {addr}")
                 return False

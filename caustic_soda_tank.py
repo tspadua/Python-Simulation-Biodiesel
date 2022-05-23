@@ -68,7 +68,7 @@ class CausticSodaTankSocket():
         print("Listening on %s:%d" %(self.host, self.port))
         while True:
             conn, addr = self.s.accept()
-            conn.settimeout(30)
+            #conn.settimeout(30)
             start_new_thread(self.handle_client_thread, (conn, addr))
     
     def handle_client_thread(self, conn, addr):

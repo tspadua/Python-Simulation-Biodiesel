@@ -64,7 +64,7 @@ class Reactor():
             self.status = "Waiting"
     
     def pass_content(self):
-        if ( self.content["mixed_compound"] > self.flow_rate ):
+        if ( self.content["mixed_compound"] >= self.flow_rate ):
             content = {
                 "role": "Process",
                 "compound": "mixed_compound",
@@ -97,7 +97,7 @@ class ReactorSocket(Server):
         print("Listening on %s:%d" %(self.host, self.port))
         while True:
             conn, addr = self.s.accept()
-            conn.settimeout(30)
+            #conn.settimeout(30)
             start_new_thread(self.handle_client_thread, (conn, addr))
 
     

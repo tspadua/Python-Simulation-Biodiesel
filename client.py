@@ -35,10 +35,9 @@ try:
     start_new_thread(connectToServer, ('localhost', 5000, {"role": "Orchestrator"}, "oil"))
     start_new_thread(connectToServer, ('localhost', 5001, {"role": "Orchestrator"}, "NaOH"))
     start_new_thread(connectToServer, ('localhost', 5002, {"role": "Orchestrator"}, "EtOH"))
-
     
     while True:
-        print(output["reactor"])
+        #print(output["reactor"])
         print(output["test_output"])
         #print(output["oil"])
         #print(output["NaOH"])

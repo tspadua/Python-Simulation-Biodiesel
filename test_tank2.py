@@ -8,7 +8,7 @@ import random
 
 config = {
     "host": "localhost",
-    "port": 9000
+    "port": 9001
 }
 
 # Refer to server.py for inherited class
@@ -51,8 +51,7 @@ class TestTank(Server):
                         self.content[data['compound']] += data['volume']
                         output = json.dumps({"accepted": True})
                         conn.sendall((bytes(output, encoding='utf-8')))
-            except Exception as e:
-                print(e)
+            except:
                 conn.close()
                 print(f"Disconnected: {addr}")
                 return False
