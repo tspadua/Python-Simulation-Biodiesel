@@ -65,10 +65,8 @@ class Decanter():
         washing_solution_output = {"role": "Process", "compound": "washing_solution", "volume": 0}
         washing_solution_output['volume'] = self.volume*0.96
 
-        print()
-        print(EtOH_output)
         self.next_containers["EtOH_dryer"].sendall(bytes(json.dumps(EtOH_output), encoding='utf-8'))
-        #self.next_containers["Glycerin_tank"].sendall(bytes(json.dumps(glycerin_output), encoding='utf-8'))
+        self.next_containers["Glycerin_tank"].sendall(bytes(json.dumps(glycerin_output), encoding='utf-8'))
         #self.next_containers["Washing_tank"].sendall(bytes(json.dumps(washing_solution_output), encoding='utf-8'))
 
         self.volume = 0
@@ -120,7 +118,7 @@ class DecanterSocket(Server):
                     if (data['role'] == 'Orchestrator'):
 
                         self.decanter.connect_to_tank(config['connection_host_dryer'], config['connection_port_dryer'], "EtOH_dryer")
-                        #self.decanter.connect_to_tank(config['connection_host_glycerin'], config['connection_port_glycerin'], "Glycerin_tank")
+                        self.decanter.connect_to_tank(config['connection_host_glycerin'], config['connection_port_glycerin'], "Glycerin_tank")
                         #self.decanter.connect_to_tank(config['connection_host_washing_tank'], config['connection_port_washing_tank'], "Washing_tank")
                         while True:
                             try:

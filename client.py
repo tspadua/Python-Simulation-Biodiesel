@@ -14,7 +14,8 @@ output = {
     "NaOH": None,
     "EtOH": None,
     "decanter": None,
-    "test_output": None
+    "test_output": None,
+    "test_2": None
 }
 
 def connectToServer(host, port, message, type):
@@ -29,6 +30,7 @@ def connectToServer(host, port, message, type):
             output[type] = dados.decode()
 
 try:
+    start_new_thread(connectToServer, ('localhost', 9001, {"role": "Orchestrator"}, "test_2"))
     start_new_thread(connectToServer, ('localhost', 9000, {"role": "Orchestrator"}, "test_output"))
     start_new_thread(connectToServer, ('localhost', 5004, {"role": "Orchestrator"}, "decanter"))
     start_new_thread(connectToServer, ('localhost', 5003, {"role": "Orchestrator"}, "reactor"))
@@ -37,8 +39,10 @@ try:
     start_new_thread(connectToServer, ('localhost', 5002, {"role": "Orchestrator"}, "EtOH"))
     
     while True:
-        print(output["reactor"])
+        #print(output["reactor"])
         print(output["test_output"])
+        print(output["test_2"])
+        print()
         #print(output["oil"])
         #print(output["NaOH"])
         #print(output["EtOH"])
