@@ -10,7 +10,7 @@ config = {
     "host": "localhost",
     "port": 5002,
     "connection_host": "localhost",
-    "connection_port": 6000
+    "connection_port": 5003
 }
 
 class EtanolTank():

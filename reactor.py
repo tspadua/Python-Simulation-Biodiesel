@@ -8,9 +8,9 @@ import random
 
 config = {
     "host": "localhost",
-    "port": 6000,
+    "port": 5003,
     "connection_host": "localhost",
-    "connection_port": 6001
+    "connection_port": 5004
 }
 
 class Reactor():
@@ -64,7 +64,7 @@ class Reactor():
             self.status = "Waiting"
     
     def pass_content(self):
-        if (( self.status == "Working" ) and ( self.content["mixed_compound"] > self.flow_rate )):
+        if ( self.content["mixed_compound"] > self.flow_rate ):
             content = {
                 "role": "Process",
                 "compound": "mixed_compound",

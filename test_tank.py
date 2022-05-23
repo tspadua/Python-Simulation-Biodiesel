@@ -17,7 +17,11 @@ class TestTank(Server):
         self.host = host
         self.port = port
 
-        self.compound_tank = ChemicalTank("glycerin")
+        self.content = {
+            "glycerin": 0,
+            "EtOH": 0,
+            "washing_solution": 0
+        }
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # prevents "Address already in use"
@@ -39,12 +43,11 @@ class TestTank(Server):
                     #       }
                     
                     if (data['role'] == 'Orchestrator'):
-                        output = self.compound_tank.serialize()
                         sleep(1)
-                        output = json.dumps(output)
+                        output = json.dumps(self.content)
                         conn.sendall((bytes(output, encoding='utf-8')))
                     else:
-                        print(data)
+                        self.content[data['compound']] += data['volume']
             except:
                 conn.close()
                 print(f"Disconnected: {addr}")
