@@ -25,12 +25,22 @@ class Decanter():
         self.capacity = capacity
         self.rest_time = rest_time
         self.status = "Waiting"
-        self.volume = 0
         self.next_containers = {}
         self.cycle_count = 0
 
+        self.content = {
+            "mixed_compound": 0,
+            "EtOH": 0,
+            "glycerin": 0,
+            "washing_solution": 0
+        }
+
+    @property 
+    def volume(self):
+        return sum(self.content.values())
+
     @property
-    def shouldRest(self):
+    def should_rest(self):
         if (self.volume == self.capacity):
             return True
         else:
@@ -38,7 +48,12 @@ class Decanter():
     
     def serialize(self):
         return {
-            "decanter": self.volume
+            "status": self.status,
+            "cycle_count": self.cycle_count,
+            "mixed_compound": self.content["mixed_compound"],
+            "EtOH": self.content["EtOH"],
+            "glycerin": self.content["glycerin"],
+            "washing_solution": self.content["washing_solution"]
         }
 
     # EtOH, Glycerin, wash_solution
@@ -48,36 +63,63 @@ class Decanter():
 
     def receive_content(self, data):
         if (self.volume + data["volume"] <= self.capacity):
-            self.volume += data["volume"]
+
+            self.content["mixed_compound"] += data["volume"]
             return {"accepted": True}
         else:
             return {"accepted": False}
+
+    def attempt_to_send(self, destination, compound, volume):
+
+        output = {"role": "Process", "compound": compound, "volume": volume}
+        self.next_containers[destination].sendall(bytes(json.dumps(output), encoding='utf-8'))
+
+        response = self.next_containers[destination].recv(1024)
+        response = json.loads(response.decode("utf-8"))
+
+        if (response["accepted"]):
+            print("sent content")
+            self.content[compound] = 0
     
     def pass_content(self):
         # 96% -> lavagem, 3%->etOH, 1% -> Glycerin
 
-        EtOH_output = {"role": "Process", "compound": "EtOH", "volume": 0}
-        EtOH_output['volume'] = self.volume*0.03
 
-        glycerin_output = {"role": "Process", "compound": "glycerin", "volume": 0}
-        glycerin_output['volume'] = self.volume*0.01
+        self.attempt_to_send("EtOH_dryer", "EtOH", self.content["EtOH"])
+        self.attempt_to_send("Glycerin_tank", "glycerin", self.content["glycerin"])
+        #self.attempt_to_send("Washing_tank", "EtOH", self.content["washing_solution"])
 
-        washing_solution_output = {"role": "Process", "compound": "washing_solution", "volume": 0}
-        washing_solution_output['volume'] = self.volume*0.96
-
-        self.next_containers["EtOH_dryer"].sendall(bytes(json.dumps(EtOH_output), encoding='utf-8'))
-        self.next_containers["Glycerin_tank"].sendall(bytes(json.dumps(glycerin_output), encoding='utf-8'))
+        self.content["washing_solution"] = 0 ## TODO: CHANGE WHEN WASHING TANK IS CREATED
+        #self.next_containers["EtOH_dryer"].sendall(bytes(json.dumps(EtOH_output), encoding='utf-8'))
+        #self.next_containers["Glycerin_tank"].sendall(bytes(json.dumps(glycerin_output), encoding='utf-8'))
         #self.next_containers["Washing_tank"].sendall(bytes(json.dumps(washing_solution_output), encoding='utf-8'))
 
         self.volume = 0
 
-    def decant(self):
-        print("Entrou no decant")
-        self.cycle_count += 1
-        self.status = "Working"
-        sleep(5)
-        self.status = "Waiting"
-        self.pass_content()
+    def attempt_decant(self, conn):
+        if (self.content["mixed_compound"] == 0):
+            self.pass_content()
+        else:
+            self.status = "Working"
+            
+            # ensure that client is updated
+            conn.sendall(bytes(json.dumps(self.serialize()), encoding='utf-8'))
+
+            sleep(5)
+            
+            self.content["EtOH"] = round(self.content["mixed_compound"]*0.03, 2)
+            self.content["glycerin"] = round(self.content["mixed_compound"]*0.01, 2)
+            self.content["washing_solution"] = round(self.content["mixed_compound"]*0.96, 2)
+            
+            self.content["mixed_compound"] = 0
+
+            self.status = "Waiting"
+
+            # ensure that client is updated
+            conn.sendall(bytes(json.dumps(self.serialize()), encoding='utf-8'))
+            self.pass_content()
+            self.cycle_count += 1
+
 
 
 
@@ -123,13 +165,10 @@ class DecanterSocket(Server):
                         while True:
                             try:
                                 output = self.decanter.serialize()
-
+                                if (self.decanter.should_rest):
+                                    self.decanter.attempt_decant(conn)
                                 conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
-                                print(self.decanter.shouldRest)
-                                if (self.decanter.shouldRest):
-                                    self.decanter.decant()
-                                else:
-                                    sleep(1)
+                                sleep(1)
                                 
                             except:
                                 output = {
@@ -138,7 +177,6 @@ class DecanterSocket(Server):
                                     }
                                 #conn.sendall((bytes(json.dumps(output), encoding='utf-8')))
                     else:
-
                         output = self.decanter.receive_content(data)
                         conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
 
@@ -149,4 +187,3 @@ class DecanterSocket(Server):
                 return False
 
 server = DecanterSocket(config['host'], config['port']).listen()
-   

@@ -2,6 +2,9 @@ import socket
 from _thread import *
 import json
 from time import sleep
+import os
+
+clearConsole = lambda: os.system('cls' if os.name in ('nt', 'dos') else 'clear')
 
 code = "10000000"
 n = "6000"
@@ -28,6 +31,7 @@ def connectToServer(host, port, message, type):
         if (dados):
             #print(f"\nResposta do servidor: {dados.decode()}")
             output[type] = dados.decode()
+            sleep(1)
 
 try:
     start_new_thread(connectToServer, ('localhost', 9001, {"role": "Orchestrator"}, "test_2"))
@@ -40,13 +44,15 @@ try:
     
     while True:
         #print(output["reactor"])
-        print(output["test_output"])
-        print(output["test_2"])
-        print()
+        #print(output["test_output"])
+        #print(output["test_2"])
+        print(output["decanter"])
+        print("\n\n")
         #print(output["oil"])
         #print(output["NaOH"])
         #print(output["EtOH"])
         sleep(1)
+        clearConsole()
 except:
     pass
 
