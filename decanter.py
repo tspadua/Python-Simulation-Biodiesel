@@ -89,9 +89,9 @@ class Decanter():
 
             sleep(5*float(config['globals']['timescale']))
             
-            self.content["EtOH"] = round(self.content["mixed_compound"]*0.03, 2)
-            self.content["glycerin"] = round(self.content["mixed_compound"]*0.01, 2)
-            self.content["solution"] = round(self.content["mixed_compound"]*0.96, 2)
+            self.content["EtOH"] = self.content["mixed_compound"]*0.03
+            self.content["glycerin"] = self.content["mixed_compound"]*0.01
+            self.content["solution"] = self.content["mixed_compound"]*0.96
             
             self.content["mixed_compound"] = 0
             self.cycle_count += 1

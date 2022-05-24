@@ -52,7 +52,7 @@ class EtanolDryer():
     def dry(self):
             sleep(self.calculate_drying_time()*float(config['globals']['timescale']))
 
-            amount_lost = round(self.volume*self.waste_factor, 2)
+            amount_lost = self.volume*self.waste_factor
             self.waste += amount_lost
             self.volume -= amount_lost
 

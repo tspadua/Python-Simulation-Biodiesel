@@ -29,10 +29,10 @@ class WashingTank():
  
     def receive_and_clean_content(self, data):
 
-        emulsion = round(data["volume"]*self.waste_factor,2)
+        emulsion = data["volume"]*self.waste_factor
 
-        self.solution = round(self.solution + (data["volume"] - emulsion), 2)
-        self.emulsion = round(self.emulsion + emulsion, 2)
+        self.solution = self.solution + (data["volume"] - emulsion)
+        self.emulsion = self.emulsion + emulsion
         
         return {"accepted": True}
     

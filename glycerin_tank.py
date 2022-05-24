@@ -18,7 +18,7 @@ class GlycerinTank():
         }
 
     def pour_content(self, volume):
-        self.volume = round(self.volume + volume,2)
+        self.volume = self.volume + volume
 
 
 class GlycerinTankSocket():

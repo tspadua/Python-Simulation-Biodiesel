@@ -24,7 +24,7 @@ class CausticSodaTank():
         self.next_container.connect((host, int(port)))
 
     def pour_content(self, volume):
-        self.volume = round(self.volume + volume,2)
+        self.volume = self.volume + volume
 
     # pass content from this container to another
     def pass_content(self):
@@ -40,7 +40,7 @@ class CausticSodaTank():
             #response = json.loads(response.decode("utf-8"))
             #if (response['accepted']):
 
-            self.volume = round(self.volume - self.flow_rate, 2)
+            self.volume = self.volume - self.flow_rate
 
 
 
