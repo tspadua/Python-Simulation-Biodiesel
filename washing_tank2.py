@@ -83,13 +83,14 @@ class WashingTankSocket():
                     data = json.loads(data.decode("utf-8"))
 
                     if (data['role'] == 'Orchestrator'):
-                        self.washing_tank.connect_to_tank(config['connection']['washing_tank2_host'], config['connection']['washing_tank2_port'])
+                        self.washing_tank.connect_to_tank(config['connection']['washing_tank3_host'], config['connection']['washing_tank3_port'])
 
                         while True:
                             try:
                                 # send current information to client
                                 #conn.sendall(bytes(json.dumps(self.washing_tank.serialize()), encoding='utf-8'))
                                 self.washing_tank.pass_content()
+
                                 sleep(1*float(config['globals']['timescale']))
                                 conn.sendall(bytes(json.dumps(self.washing_tank.serialize()), encoding='utf-8'))
                                 
@@ -109,4 +110,4 @@ class WashingTankSocket():
                 print(f"Disconnected: {addr}")
                 return False
 
-server = WashingTankSocket(config['connection']['washing_tank1_host'], config['connection']['washing_tank1_port']).listen()
+server = WashingTankSocket(config['connection']['washing_tank2_host'], config['connection']['washing_tank2_port']).listen()

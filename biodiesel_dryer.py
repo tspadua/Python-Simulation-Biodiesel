@@ -8,81 +8,74 @@ import configparser
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-class Reactor():
-    def __init__(self, flow_rate = 1):
-        self.content = {
-            "NaOH": 0,
-            "EtOH": 0,
-            "oil": 0,
-            "mixed_compound": 0
-        }
-        self.cycle_count = 0
-        self.status = "Waiting"
-        self.flow_rate = flow_rate
-        self.next_container = None
+class BiodieselDryer():
 
-    @property 
-    def volume(self):
-        return sum(self.content.values())
+    def __init__(self, waste_factor = 0.05, time_per_liter = 5, threshold = 1):
+        self.status = "Waiting"
+        self.next_container = None
+        self.threshold = threshold
+        self.time_per_liter = time_per_liter
+        self.waste_factor = waste_factor
+        self.volume = 0
+        self.waste = 0
+    
+    @property
+    def should_start_process(self):
+        if ((self.status == "Waiting") and (self.volume >= self.threshold)):
+            return True
+        else:
+            return False
 
     def serialize(self):
         return {
-            "EtOH": self.content["EtOH"],
-            "NaOH": self.content["NaOH"],
-            "oil": self.content['oil'],
-            "status": self.status,
-            "cycle_count": self.cycle_count,
-            "volume": self.volume
+            "biodiesel": self.volume,
+            "waste": self.waste,
+            "status": self.status
         }
+    
+    def calculate_drying_time(self):
+        drying_time = self.volume*self.time_per_liter 
+        return drying_time
 
     def connect_to_tank(self, host, port):
         self.next_container = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.next_container.connect((host, int(port)))
  
     def receive_content(self, data):
-        self.content[data["compound"]] += data["volume"]
-            
+        if (self.status == "Waiting"):
+            self.volume += data["volume"]
 
-    def process_content(self):
-        # condition for reactor activation
-
-        if (self.content["NaOH"] >= 1.25 and self.content["EtOH"] >= 1.25 and self.content["oil"] >= 2.5):
-
-            self.status = "Working"
-
-            self.content["NaOH"] -= 1.25
-            self.content["EtOH"] -= 1.25
-            self.content["oil"] -= 2.5
-
-            self.content["mixed_compound"] += 5
-
-            self.cycle_count += 1
-
+            return {"accepted": True}
         else:
-            self.status = "Waiting"
+            return {"accepted": False}
+
+    def dry(self):
+            sleep(self.calculate_drying_time()*float(config['globals']['timescale']))
+
+            amount_lost = round(self.volume*self.waste_factor, 2)
+            self.waste += amount_lost
+            self.volume -= amount_lost
+
+            self.pass_content()
+
     
     def pass_content(self):
-        if ( self.content["mixed_compound"] >= self.flow_rate ):
             content = {
                 "role": "Process",
-                "compound": "mixed_compound",
-                "volume": self.flow_rate
+                "compound": "biodiesel",
+                "volume": self.volume
             }
             self.next_container.sendall(bytes(json.dumps(content), encoding='utf-8'))
 
-            response = self.next_container.recv(1024)
-            response = json.loads(response.decode("utf-8"))
-
-            if (response['accepted']):
-                self.content["mixed_compound"] -= self.flow_rate
+            self.volume = 0
         
 
-class ReactorSocket():
+class BiodieselDryerSocket():
     def __init__(self, host, port):
         self.host = host
         self.port = int(port)
 
-        self.reactor = Reactor()
+        self.dryer = BiodieselDryer()
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # prevents "Address already in use"
@@ -106,14 +99,22 @@ class ReactorSocket():
                     data = json.loads(data.decode("utf-8"))
 
                     if (data['role'] == 'Orchestrator'):
-                        self.reactor.connect_to_tank(config['connection']['decanter_host'], config['connection']['decanter_port'])
+                        self.dryer.connect_to_tank(config['connection']['biodiesel_tank_host'], config['connection']['biodiesel_tank_port'])
 
                         while True:
                             try:
-                                output = self.reactor.serialize()
-                                conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
-                                self.reactor.process_content()
-                                self.reactor.pass_content()
+
+                                if (self.dryer.should_start_process):
+
+                                    self.dryer.status = "Working"
+                                    # Update client about working status
+                                    conn.sendall(bytes(json.dumps(self.dryer.serialize()), encoding='utf-8'))
+                                    self.dryer.dry()
+                                    self.dryer.status = "Waiting"
+
+                                # send current information to client
+                                conn.sendall(bytes(json.dumps(self.dryer.serialize()), encoding='utf-8'))
+
                                 sleep(1*float(config['globals']['timescale']))
                                 
                             except:
@@ -123,11 +124,7 @@ class ReactorSocket():
                                     }
                                 #conn.sendall((bytes(json.dumps(output), encoding='utf-8')))
                     else:
-
-                        self.reactor.receive_content(data)
-                        output = {
-                            "accepted": True
-                        }
+                        output = self.dryer.receive_content(data)
                         conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
 
             except:
@@ -135,4 +132,4 @@ class ReactorSocket():
                 print(f"Disconnected: {addr}")
                 return False
 
-server = ReactorSocket(config['connection']['reactor_host'], config['connection']['reactor_port']).listen()
+server = BiodieselDryerSocket(config['connection']['biodiesel_dryer_host'], config['connection']['biodiesel_dryer_port']).listen()

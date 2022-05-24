@@ -19,7 +19,11 @@ output = {
     "etanol_dryer": None,
     "glycerin_tank": None,
     "1st_washing_tank": None,
-    "test1": None,
+    "2nd_washing_tank": None,
+    "3rd_washing_tank": None,
+    "biodiesel_dryer": None,
+    "biodiesel_tank": None
+    #"test1": None,
 }
 
 def connectToServer(host, port, message, type):
@@ -75,13 +79,33 @@ try:
         config['connection']['washing_tank1_host'],
         config['connection']['washing_tank1_port'],
         {"role": "Orchestrator"}, "1st_washing_tank"))
-       
+    
     start_new_thread(connectToServer, (
-        config['testing_servers']['test1_host'],
-        config['testing_servers']['test1_port'],
-        {"role": "Orchestrator"}, "test1"))
+        config['connection']['washing_tank2_host'],
+        config['connection']['washing_tank2_port'],
+        {"role": "Orchestrator"}, "2nd_washing_tank"))
 
-    while True:
+    start_new_thread(connectToServer, (
+        config['connection']['washing_tank3_host'],
+        config['connection']['washing_tank3_port'],
+        {"role": "Orchestrator"}, "3rd_washing_tank"))
+    
+    start_new_thread(connectToServer, (
+        config['connection']['biodiesel_dryer_host'],
+        config['connection']['biodiesel_dryer_port'],
+        {"role": "Orchestrator"}, "biodiesel_dryer"))
+
+    start_new_thread(connectToServer, (
+        config['connection']['biodiesel_tank_host'],
+        config['connection']['biodiesel_tank_port'],
+        {"role": "Orchestrator"}, "biodiesel_tank"))
+
+    #start_new_thread(connectToServer, (
+    #    config['testing_servers']['test1_host'],
+    #    config['testing_servers']['test1_port'],
+    #    {"role": "Orchestrator"}, "test1"))
+
+    for second_cnt in range (1, 600):#3600):
         clearConsole()
         print("Oil Tank:")
         print(output["oil"])
@@ -115,11 +139,27 @@ try:
         print(output["1st_washing_tank"])
         print("\n")
 
-        print("Test Output:")
-        print(output["test1"])
+        print("Second Washing Tank:")
+        print(output["2nd_washing_tank"])
         print("\n")
 
+        print("Third Washing Tank:")
+        print(output["3rd_washing_tank"])
+        print("\n")
+
+        print("Biodiesel Dryer:")
+        print(output["biodiesel_dryer"])
+        print("\n")
+
+        print("Biodiesel Tank:")
+        print(output["biodiesel_tank"])
+        print("\n")
+
+        #print("Test Output:")
+        #print(output["test1"])
+        #print("\n")
         sleep(1*float(config['globals']['timescale']))
+
 except Exception as e:
     print("Err: " + str(e))
     pass
