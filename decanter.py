@@ -2,9 +2,7 @@ import socket
 from _thread import *
 from time import sleep
 from server import Server
-from chemical_tank import ChemicalTank
 import json
-import random
 
 config = {
     "host": "localhost",
@@ -14,10 +12,10 @@ config = {
     "connection_port_dryer": 5005,
 
     "connection_host_glycerin": "localhost",
-    "connection_port_glycerin": 9001,
+    "connection_port_glycerin": 5006,
 
     "connection_host_washing_tank": "localhost",
-    "connection_port_washing_tank": 9003,
+    "connection_port_washing_tank": 5007,
 }
 
 class Decanter():
@@ -32,7 +30,7 @@ class Decanter():
             "mixed_compound": 0,
             "EtOH": 0,
             "glycerin": 0,
-            "washing_solution": 0
+            "solution": 0
         }
 
     @property 
@@ -53,7 +51,7 @@ class Decanter():
             "mixed_compound": self.content["mixed_compound"],
             "EtOH": self.content["EtOH"],
             "glycerin": self.content["glycerin"],
-            "washing_solution": self.content["washing_solution"]
+            "solution": self.content["solution"]
         }
 
     # EtOH, Glycerin, wash_solution
@@ -78,7 +76,6 @@ class Decanter():
         response = json.loads(response.decode("utf-8"))
 
         if (response["accepted"]):
-            print("sent content")
             self.content[compound] = 0
     
     def pass_content(self):
@@ -87,12 +84,7 @@ class Decanter():
 
         self.attempt_to_send("EtOH_dryer", "EtOH", self.content["EtOH"])
         self.attempt_to_send("Glycerin_tank", "glycerin", self.content["glycerin"])
-        #self.attempt_to_send("Washing_tank", "EtOH", self.content["washing_solution"])
-
-        self.content["washing_solution"] = 0 ## TODO: CHANGE WHEN WASHING TANK IS CREATED
-        #self.next_containers["EtOH_dryer"].sendall(bytes(json.dumps(EtOH_output), encoding='utf-8'))
-        #self.next_containers["Glycerin_tank"].sendall(bytes(json.dumps(glycerin_output), encoding='utf-8'))
-        #self.next_containers["Washing_tank"].sendall(bytes(json.dumps(washing_solution_output), encoding='utf-8'))
+        self.attempt_to_send("Washing_tank", "solution", self.content["solution"])
 
         self.volume = 0
 
@@ -109,7 +101,7 @@ class Decanter():
             
             self.content["EtOH"] = round(self.content["mixed_compound"]*0.03, 2)
             self.content["glycerin"] = round(self.content["mixed_compound"]*0.01, 2)
-            self.content["washing_solution"] = round(self.content["mixed_compound"]*0.96, 2)
+            self.content["solution"] = round(self.content["mixed_compound"]*0.96, 2)
             
             self.content["mixed_compound"] = 0
 
@@ -161,7 +153,7 @@ class DecanterSocket(Server):
 
                         self.decanter.connect_to_tank(config['connection_host_dryer'], config['connection_port_dryer'], "EtOH_dryer")
                         self.decanter.connect_to_tank(config['connection_host_glycerin'], config['connection_port_glycerin'], "Glycerin_tank")
-                        #self.decanter.connect_to_tank(config['connection_host_washing_tank'], config['connection_port_washing_tank'], "Washing_tank")
+                        self.decanter.connect_to_tank(config['connection_host_washing_tank'], config['connection_port_washing_tank'], "Washing_tank")
                         while True:
                             try:
                                 if (self.decanter.should_rest):

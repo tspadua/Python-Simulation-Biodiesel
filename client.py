@@ -19,7 +19,9 @@ output = {
     "decanter": None,
     "etanol_dryer": None,
     "test_output": None,
-    "test_2": None
+    "test_2": None,
+    "glycerin_tank": None,
+    "1st_washing_tank": None
 }
 
 def connectToServer(host, port, message, type):
@@ -36,34 +38,54 @@ def connectToServer(host, port, message, type):
 
 try:
     start_new_thread(connectToServer, ('localhost', 9001, {"role": "Orchestrator"}, "test_2"))
-    start_new_thread(connectToServer, ('localhost', 9000, {"role": "Orchestrator"}, "test_output"))
+    #start_new_thread(connectToServer, ('localhost', 9000, {"role": "Orchestrator"}, "test_output"))
     start_new_thread(connectToServer, ('localhost', 5004, {"role": "Orchestrator"}, "decanter"))
     start_new_thread(connectToServer, ('localhost', 5003, {"role": "Orchestrator"}, "reactor"))
     start_new_thread(connectToServer, ('localhost', 5000, {"role": "Orchestrator"}, "oil"))
     start_new_thread(connectToServer, ('localhost', 5001, {"role": "Orchestrator"}, "NaOH"))
     start_new_thread(connectToServer, ('localhost', 5002, {"role": "Orchestrator"}, "EtOH"))
     start_new_thread(connectToServer, ('localhost', 5005, {"role": "Orchestrator"}, "etanol_dryer"))
-    5005
+    start_new_thread(connectToServer, ('localhost', 5006, {"role": "Orchestrator"}, "glycerin_tank"))
+    start_new_thread(connectToServer, ('localhost', 5007, {"role": "Orchestrator"}, "1st_washing_tank"))
+
     while True:
+
         print("Oil Tank:")
         print(output["oil"])
-        print("\n\n")
+        print("\n")
+
         print("Caustic Soda Tank:")
         print(output["NaOH"])
-        print("\n\n")
+        print("\n")
+
         print("Ethanol Tank:")
         print(output["EtOH"])
-        print("\n\n")
+        print("\n")
+
         print("Reactor:")
         print(output["reactor"])
-        print("\n\n")
+        print("\n")
+
         print("Decanter:")
         print(output["decanter"])
-        print("\n\n")
+        print("\n")
+
         print("Ethanol Dryer:")
         print(output["etanol_dryer"])
-        #print(output["test_output"])
-        #print(output["test_2"])
+        print("\n")
+
+        print("Glycerin Tank:")
+        print(output["glycerin_tank"])
+        print("\n")
+
+        print("First Washing Tank:")
+        print(output["1st_washing_tank"])
+        print("\n")
+
+        print("Test Output:")
+        print(output["test_2"])
+        print("\n")
+
         sleep(1)
         clearConsole()
 except:

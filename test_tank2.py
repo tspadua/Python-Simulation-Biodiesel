@@ -18,10 +18,7 @@ class TestTank(Server):
         self.port = port
 
         self.content = {
-            "glycerin": 0,
-            "EtOH": 0,
-            "washing_solution": 0,
-            "mixed_compound": 0
+            "solution": 0
         }
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
