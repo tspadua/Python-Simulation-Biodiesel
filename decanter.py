@@ -11,13 +11,13 @@ config = {
     "port": 5004,
 
     "connection_host_dryer": "localhost",
-    "connection_port_dryer": 9000,
+    "connection_port_dryer": 5005,
 
     "connection_host_glycerin": "localhost",
     "connection_port_glycerin": 9001,
 
     "connection_host_washing_tank": "localhost",
-    "connection_port_washing_tank": 9000,
+    "connection_port_washing_tank": 9003,
 }
 
 class Decanter():
@@ -164,10 +164,10 @@ class DecanterSocket(Server):
                         #self.decanter.connect_to_tank(config['connection_host_washing_tank'], config['connection_port_washing_tank'], "Washing_tank")
                         while True:
                             try:
-                                output = self.decanter.serialize()
                                 if (self.decanter.should_rest):
                                     self.decanter.attempt_decant(conn)
-                                conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
+
+                                conn.sendall(bytes(json.dumps(self.decanter.serialize()), encoding='utf-8'))
                                 sleep(1)
                                 
                             except:

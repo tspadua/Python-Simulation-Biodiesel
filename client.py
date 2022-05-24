@@ -17,6 +17,7 @@ output = {
     "NaOH": None,
     "EtOH": None,
     "decanter": None,
+    "etanol_dryer": None,
     "test_output": None,
     "test_2": None
 }
@@ -41,16 +42,28 @@ try:
     start_new_thread(connectToServer, ('localhost', 5000, {"role": "Orchestrator"}, "oil"))
     start_new_thread(connectToServer, ('localhost', 5001, {"role": "Orchestrator"}, "NaOH"))
     start_new_thread(connectToServer, ('localhost', 5002, {"role": "Orchestrator"}, "EtOH"))
-    
+    start_new_thread(connectToServer, ('localhost', 5005, {"role": "Orchestrator"}, "etanol_dryer"))
+    5005
     while True:
-        #print(output["reactor"])
-        #print(output["test_output"])
-        #print(output["test_2"])
+        print("Oil Tank:")
+        print(output["oil"])
+        print("\n\n")
+        print("Caustic Soda Tank:")
+        print(output["NaOH"])
+        print("\n\n")
+        print("Ethanol Tank:")
+        print(output["EtOH"])
+        print("\n\n")
+        print("Reactor:")
+        print(output["reactor"])
+        print("\n\n")
+        print("Decanter:")
         print(output["decanter"])
         print("\n\n")
-        #print(output["oil"])
-        #print(output["NaOH"])
-        #print(output["EtOH"])
+        print("Ethanol Dryer:")
+        print(output["etanol_dryer"])
+        #print(output["test_output"])
+        #print(output["test_2"])
         sleep(1)
         clearConsole()
 except:
