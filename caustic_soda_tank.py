@@ -104,7 +104,8 @@ class CausticSodaTankSocket():
                                 "data": ""
                                 }
                             conn.sendall((bytes(json.dumps(output), encoding='utf-8')))
-            except:
+            except Exception as e:
+                print(e)
                 conn.close()
                 print(f"Disconnected: {addr}")
                 return False

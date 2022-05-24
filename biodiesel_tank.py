@@ -66,6 +66,7 @@ class BiodieselTankSocket():
                                 sleep(1*float(config['globals']['timescale']))
                                 
                         except Exception as e:
+                            print(e)
                             output = {
                                 "error": "Connection between components is broken, please contact maintenance",
                                 "data": ""

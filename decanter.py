@@ -41,7 +41,8 @@ class Decanter():
             "mixed_compound": self.content["mixed_compound"],
             "EtOH": self.content["EtOH"],
             "glycerin": self.content["glycerin"],
-            "solution": self.content["solution"]
+            "solution": self.content["solution"],
+            "volume": self.volume
         }
 
     # EtOH, Glycerin, wash_solution

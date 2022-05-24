@@ -30,6 +30,7 @@ class Reactor():
             "EtOH": self.content["EtOH"],
             "NaOH": self.content["NaOH"],
             "oil": self.content['oil'],
+            "mixed_compound": self.content['mixed_compound'],
             "status": self.status,
             "cycle_count": self.cycle_count,
             "volume": self.volume
@@ -130,7 +131,8 @@ class ReactorSocket():
                         }
                         conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
 
-            except:
+            except Exception as e:
+                print(e)
                 conn.close()
                 print(f"Disconnected: {addr}")
                 return False

@@ -111,11 +111,10 @@ class EtanolDryerSocket():
                                     conn.sendall(bytes(json.dumps(self.dryer.serialize()), encoding='utf-8'))
                                     self.dryer.dry()
                                     self.dryer.status = "Waiting"
-
-                                # send current information to client
-                                conn.sendall(bytes(json.dumps(self.dryer.serialize()), encoding='utf-8'))
-
-                                sleep(1*float(config['globals']['timescale']))
+                                else:
+                                    # send current information to client
+                                    conn.sendall(bytes(json.dumps(self.dryer.serialize()), encoding='utf-8'))
+                                    sleep(1*float(config['globals']['timescale']))
                                 
                             except:
                                 output = {
@@ -127,7 +126,8 @@ class EtanolDryerSocket():
                         output = self.dryer.receive_content(data)
                         conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
 
-            except:
+            except Exception as e:
+                print(e)
                 conn.close()
                 print(f"Disconnected: {addr}")
                 return False

@@ -104,7 +104,8 @@ class EtanolTankSocket():
                         self.etanol_tank.pour_content(data["volume"])
                         output = json.dumps({"accepted": True})
                         conn.sendall((bytes(output, encoding='utf-8')))
-            except:
+            except Exception as e:
+                print(e)
                 conn.close()
                 print(f"Disconnected: {addr}")
                 return False
