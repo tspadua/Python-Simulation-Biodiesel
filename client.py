@@ -3,13 +3,12 @@ from _thread import *
 import json
 from time import sleep
 import os
+import configparser
 
 clearConsole = lambda: os.system('cls' if os.name in ('nt', 'dos') else 'clear')
 
-code = "10000000"
-n = "6000"
-
-message = code + "&" + n
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 output = {
     "reactor": None,
@@ -18,15 +17,14 @@ output = {
     "EtOH": None,
     "decanter": None,
     "etanol_dryer": None,
-    "test_output": None,
-    "test_2": None,
     "glycerin_tank": None,
-    "1st_washing_tank": None
+    "1st_washing_tank": None,
+    "test1": None,
 }
 
 def connectToServer(host, port, message, type):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((host, port))
+    s.connect((host, int(port)))
 
     while (True):
         s.sendall(bytes(json.dumps(message), encoding='utf-8'))
@@ -34,22 +32,57 @@ def connectToServer(host, port, message, type):
         if (dados):
             #print(f"\nResposta do servidor: {dados.decode()}")
             output[type] = dados.decode()
-            sleep(1)
+            sleep(1*float(config['globals']['timescale']))
 
 try:
-    start_new_thread(connectToServer, ('localhost', 9001, {"role": "Orchestrator"}, "test_2"))
-    #start_new_thread(connectToServer, ('localhost', 9000, {"role": "Orchestrator"}, "test_output"))
-    start_new_thread(connectToServer, ('localhost', 5004, {"role": "Orchestrator"}, "decanter"))
-    start_new_thread(connectToServer, ('localhost', 5003, {"role": "Orchestrator"}, "reactor"))
-    start_new_thread(connectToServer, ('localhost', 5000, {"role": "Orchestrator"}, "oil"))
-    start_new_thread(connectToServer, ('localhost', 5001, {"role": "Orchestrator"}, "NaOH"))
-    start_new_thread(connectToServer, ('localhost', 5002, {"role": "Orchestrator"}, "EtOH"))
-    start_new_thread(connectToServer, ('localhost', 5005, {"role": "Orchestrator"}, "etanol_dryer"))
-    start_new_thread(connectToServer, ('localhost', 5006, {"role": "Orchestrator"}, "glycerin_tank"))
-    start_new_thread(connectToServer, ('localhost', 5007, {"role": "Orchestrator"}, "1st_washing_tank"))
+
+    start_new_thread(connectToServer, (
+        config['connection']['decanter_host'],
+        config['connection']['decanter_port'],
+        {"role": "Orchestrator"}, "decanter"))
+
+    start_new_thread(connectToServer, (
+        config['connection']['reactor_host'],
+        config['connection']['reactor_port'],
+        {"role": "Orchestrator"}, "reactor"))
+
+    start_new_thread(connectToServer, (
+        config['connection']['oil_tank_host'],
+        config['connection']['oil_tank_port'],
+        {"role": "Orchestrator"}, "oil"))
+    
+    start_new_thread(connectToServer, (
+        config['connection']['caustic_soda_tank_host'],
+        config['connection']['caustic_soda_tank_port'],
+        {"role": "Orchestrator"}, "NaOH"))
+
+    start_new_thread(connectToServer, (
+        config['connection']['ethanol_tank_host'],
+        config['connection']['ethanol_tank_port'],
+        {"role": "Orchestrator"}, "EtOH"))
+
+    start_new_thread(connectToServer, (
+        config['connection']['ethanol_dryer_host'],
+        config['connection']['ethanol_dryer_port'],
+        {"role": "Orchestrator"}, "etanol_dryer"))
+
+    start_new_thread(connectToServer, (
+        config['connection']['glycerin_tank_host'],
+        config['connection']['glycerin_tank_port'],
+        {"role": "Orchestrator"}, "glycerin_tank"))
+
+    start_new_thread(connectToServer, (
+        config['connection']['washing_tank1_host'],
+        config['connection']['washing_tank1_port'],
+        {"role": "Orchestrator"}, "1st_washing_tank"))
+       
+    start_new_thread(connectToServer, (
+        config['testing_servers']['test1_host'],
+        config['testing_servers']['test1_port'],
+        {"role": "Orchestrator"}, "test1"))
 
     while True:
-
+        clearConsole()
         print("Oil Tank:")
         print(output["oil"])
         print("\n")
@@ -83,12 +116,12 @@ try:
         print("\n")
 
         print("Test Output:")
-        print(output["test_2"])
+        print(output["test1"])
         print("\n")
 
-        sleep(1)
-        clearConsole()
-except:
+        sleep(1*float(config['globals']['timescale']))
+except Exception as e:
+    print("Err: " + str(e))
     pass
 
 

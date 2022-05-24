@@ -1,22 +1,12 @@
 import socket
 from _thread import *
 from time import sleep
-from server import Server
 import json
 
-config = {
-    "host": "localhost",
-    "port": 5004,
+import configparser
 
-    "connection_host_dryer": "localhost",
-    "connection_port_dryer": 5005,
-
-    "connection_host_glycerin": "localhost",
-    "connection_port_glycerin": 5006,
-
-    "connection_host_washing_tank": "localhost",
-    "connection_port_washing_tank": 5007,
-}
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 class Decanter():
     def __init__(self, capacity = 10, rest_time = 5):
@@ -57,7 +47,7 @@ class Decanter():
     # EtOH, Glycerin, wash_solution
     def connect_to_tank(self, host, port, nickname):
         self.next_containers[nickname] = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.next_containers[nickname].connect((host, port))
+        self.next_containers[nickname].connect((host, int(port)))
 
     def receive_content(self, data):
         if (self.volume + data["volume"] <= self.capacity):
@@ -97,14 +87,14 @@ class Decanter():
             # ensure that client is updated
             conn.sendall(bytes(json.dumps(self.serialize()), encoding='utf-8'))
 
-            sleep(5)
+            sleep(5*float(config['globals']['timescale']))
             
             self.content["EtOH"] = round(self.content["mixed_compound"]*0.03, 2)
             self.content["glycerin"] = round(self.content["mixed_compound"]*0.01, 2)
             self.content["solution"] = round(self.content["mixed_compound"]*0.96, 2)
             
             self.content["mixed_compound"] = 0
-
+            self.cycle_count += 1
             self.status = "Waiting"
 
             # ensure that client is updated
@@ -113,18 +103,10 @@ class Decanter():
             self.cycle_count += 1
 
 
-
-
-    
-    
-
-
- 
-# Refer to server.py for inherited class
-class DecanterSocket(Server):
+class DecanterSocket():
     def __init__(self, host, port):
         self.host = host
-        self.port = port
+        self.port = int(port)
 
         self.decanter = Decanter()
 
@@ -151,16 +133,16 @@ class DecanterSocket(Server):
 
                     if (data['role'] == 'Orchestrator'):
 
-                        self.decanter.connect_to_tank(config['connection_host_dryer'], config['connection_port_dryer'], "EtOH_dryer")
-                        self.decanter.connect_to_tank(config['connection_host_glycerin'], config['connection_port_glycerin'], "Glycerin_tank")
-                        self.decanter.connect_to_tank(config['connection_host_washing_tank'], config['connection_port_washing_tank'], "Washing_tank")
+                        self.decanter.connect_to_tank(config['connection']['ethanol_dryer_host'], config['connection']['ethanol_dryer_port'], "EtOH_dryer")
+                        self.decanter.connect_to_tank(config['connection']['glycerin_tank_host'], config['connection']['glycerin_tank_port'], "Glycerin_tank")
+                        self.decanter.connect_to_tank(config['connection']['washing_tank1_host'], config['connection']['washing_tank1_port'], "Washing_tank")
                         while True:
                             try:
                                 if (self.decanter.should_rest):
                                     self.decanter.attempt_decant(conn)
 
                                 conn.sendall(bytes(json.dumps(self.decanter.serialize()), encoding='utf-8'))
-                                sleep(1)
+                                sleep(1*float(config['globals']['timescale']))
                                 
                             except:
                                 output = {
@@ -178,4 +160,4 @@ class DecanterSocket(Server):
                 print(f"Disconnected: {addr}")
                 return False
 
-server = DecanterSocket(config['host'], config['port']).listen()
+server = DecanterSocket(config['connection']['decanter_host'], config['connection']['decanter_port']).listen()

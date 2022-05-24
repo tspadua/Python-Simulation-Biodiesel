@@ -1,17 +1,12 @@
 import socket
 from _thread import *
 from time import sleep
-from server import Server
-from chemical_tank import ChemicalTank
 import json
-import random
 
-config = {
-    "host": "localhost",
-    "port": 5003,
-    "connection_host": "localhost",
-    "connection_port": 5004
-}
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 class Reactor():
     def __init__(self, flow_rate = 1):
@@ -40,7 +35,7 @@ class Reactor():
 
     def connect_to_tank(self, host, port):
         self.next_container = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.next_container.connect((host, port))
+        self.next_container.connect((host, int(port)))
  
     def receive_content(self, data):
         self.content[data["compound"]] += data["volume"]
@@ -59,6 +54,7 @@ class Reactor():
 
             self.content["mixed_compound"] += 5
 
+            self.cycle_count += 1
 
         else:
             self.status = "Waiting"
@@ -79,12 +75,10 @@ class Reactor():
                 self.content["mixed_compound"] -= self.flow_rate
         
 
-    
-# Refer to server.py for inherited class
-class ReactorSocket(Server):
+class ReactorSocket():
     def __init__(self, host, port):
         self.host = host
-        self.port = port
+        self.port = int(port)
 
         self.reactor = Reactor()
 
@@ -110,7 +104,7 @@ class ReactorSocket(Server):
                     data = json.loads(data.decode("utf-8"))
 
                     if (data['role'] == 'Orchestrator'):
-                        self.reactor.connect_to_tank(config['connection_host'], config['connection_port'])
+                        self.reactor.connect_to_tank(config['connection']['decanter_host'], config['connection']['decanter_port'])
 
                         while True:
                             try:
@@ -118,7 +112,7 @@ class ReactorSocket(Server):
                                 conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
                                 self.reactor.process_content()
                                 self.reactor.pass_content()
-                                sleep(1)
+                                sleep(1*float(config['globals']['timescale']))
                                 
                             except:
                                 output = {
@@ -128,7 +122,6 @@ class ReactorSocket(Server):
                                 #conn.sendall((bytes(json.dumps(output), encoding='utf-8')))
                     else:
 
-                        print(data)
                         self.reactor.receive_content(data)
                         output = {
                             "accepted": True
@@ -140,4 +133,4 @@ class ReactorSocket(Server):
                 print(f"Disconnected: {addr}")
                 return False
 
-server = ReactorSocket(config['host'], config['port']).listen()
+server = ReactorSocket(config['connection']['reactor_host'], config['connection']['reactor_port']).listen()

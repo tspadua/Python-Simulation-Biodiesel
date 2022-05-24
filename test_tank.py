@@ -1,33 +1,32 @@
 import socket
 from _thread import *
 from time import sleep
-from server import Server
-from chemical_tank import ChemicalTank
 import json
-import random
 
-config = {
-    "host": "localhost",
-    "port": 9000
-}
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 # Refer to server.py for inherited class
-class TestTank(Server):
+class TestTank():
     def __init__(self, host, port):
         self.host = host
-        self.port = port
+        self.port = int(port)
 
-        self.content = {
-            "glycerin": 0,
-            "EtOH": 0,
-            "washing_solution": 0,
-            "mixed_compound": 0
-        }
+        self.content = {}
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # prevents "Address already in use"
-        self.s.bind((self.host, self.port))
+        self.s.bind((self.host, int(self.port)))
     
+    def listen(self):
+        self.s.listen()
+        print("Listening on %s:%d" %(self.host, self.port))
+        while True:
+            conn, addr = self.s.accept()
+            start_new_thread(self.handle_client_thread, (conn, addr))
+
     def handle_client_thread(self, conn, addr):
         print(f"Connected: {addr}")
         while True:
@@ -44,17 +43,20 @@ class TestTank(Server):
                     #       }
                     
                     if (data['role'] == 'Orchestrator'):
-                        sleep(1)
+                        sleep(1*float(config['globals']['timescale']))
                         output = json.dumps(self.content)
                         conn.sendall((bytes(output, encoding='utf-8')))
                     else:
+                        print(data)
+                        if (data['compound'] not in self.content):
+                            self.content[data['compound']] = 0
                         self.content[data['compound']] += data['volume']
+                        #self.content[data['compound']] += data['volume']
                         output = json.dumps({"accepted": True})
                         conn.sendall((bytes(output, encoding='utf-8')))
-            except Exception as e:
-                print(e)
+            except:
                 conn.close()
                 print(f"Disconnected: {addr}")
                 return False
 
-server = TestTank(config['host'], config['port']).listen()
+server = TestTank(config['testing_servers']['test1_host'], config['testing_servers']['test1_port']).listen()

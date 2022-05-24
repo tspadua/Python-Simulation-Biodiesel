@@ -1,13 +1,12 @@
 import socket
 from _thread import *
 from time import sleep
-from server import Server
 import json
 
-config = {
-    "host": "localhost",
-    "port": 5006
-}
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 class GlycerinTank():
     def __init__(self):
@@ -22,13 +21,10 @@ class GlycerinTank():
         self.volume = round(self.volume + volume,2)
 
 
-
-
-# Refer to server.py for inherited class
-class EtanolTankSocket():
+class GlycerinTankSocket():
     def __init__(self, host, port):
         self.host = host
-        self.port = port
+        self.port = int(port)
 
         self.glycerin_tank = GlycerinTank()
 
@@ -67,7 +63,7 @@ class EtanolTankSocket():
                                 output = json.dumps(output)
 
                                 conn.sendall((bytes(output, encoding='utf-8')))
-                                sleep(1)
+                                sleep(1*float(config['globals']['timescale']))
                                 
                         except Exception as e:
                             output = {
@@ -84,4 +80,4 @@ class EtanolTankSocket():
                 print(f"Disconnected: {addr}")
                 return False
 
-server = EtanolTankSocket(config['host'], config['port']).listen()
+server = GlycerinTankSocket(config['connection']['glycerin_tank_host'], config['connection']['glycerin_tank_port']).listen()

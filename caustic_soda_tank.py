@@ -1,17 +1,12 @@
 import socket
 from _thread import *
 from time import sleep
-from server import Server
-from chemical_tank import ChemicalTank
 import json
-import random
 
-config = {
-    "host": "localhost",
-    "port": 5001,
-    "connection_host": "localhost",
-    "connection_port": 5003
-}
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 class CausticSodaTank():
     def __init__(self):
@@ -26,7 +21,7 @@ class CausticSodaTank():
 
     def connect_to_tank(self, host, port):
         self.next_container = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.next_container.connect((host, port))
+        self.next_container.connect((host, int(port)))
 
     def pour_content(self, volume):
         self.volume = round(self.volume + volume,2)
@@ -55,7 +50,7 @@ class CausticSodaTank():
 class CausticSodaTankSocket():
     def __init__(self, host, port):
         self.host = host
-        self.port = port
+        self.port = int(port)
 
         self.caustic_soda_tank = CausticSodaTank()
 
@@ -89,7 +84,7 @@ class CausticSodaTankSocket():
                     if (data['role'] == 'Orchestrator'):
 
                         try:
-                            self.caustic_soda_tank.connect_to_tank(config['connection_host'], config['connection_port'])
+                            self.caustic_soda_tank.connect_to_tank(config['connection']['reactor_host'], config['connection']['reactor_port'])
                             second_cnt = 0
                             while True:
                                
@@ -100,7 +95,7 @@ class CausticSodaTankSocket():
                                 conn.sendall((bytes(output, encoding='utf-8')))
 
                                 self.caustic_soda_tank.pass_content()
-                                sleep(1) # process tick rate is 1 second because the flow rate is L/s
+                                sleep(1*float(config['globals']['timescale'])) # process tick rate is 1 second because the flow rate is L/s
                                 second_cnt += 1
                                 
                         except Exception as e:
@@ -114,4 +109,4 @@ class CausticSodaTankSocket():
                 print(f"Disconnected: {addr}")
                 return False
 
-server = CausticSodaTankSocket(config['host'], config['port']).listen()
+server = CausticSodaTankSocket(config['connection']['caustic_soda_tank_host'], config['connection']['caustic_soda_tank_port']).listen()

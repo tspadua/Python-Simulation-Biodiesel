@@ -1,19 +1,16 @@
 import socket
 from _thread import *
 from time import sleep
-from server import Server
 import json
 
-config = {
-    "host": "localhost",
-    "port": 5005,
-    "connection_host": "localhost",
-    "connection_port": 5002
-}
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 class EtanolDryer():
 
-    def __init__(self, waste_factor = 0.5, time_per_liter = 5, threshold = 1):
+    def __init__(self, waste_factor = 0.05, time_per_liter = 5, threshold = 1):
         self.status = "Waiting"
         self.next_container = None
         self.threshold = threshold
@@ -42,7 +39,7 @@ class EtanolDryer():
 
     def connect_to_tank(self, host, port):
         self.next_container = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.next_container.connect((host, port))
+        self.next_container.connect((host, int(port)))
  
     def receive_content(self, data):
         if (self.status == "Waiting"):
@@ -53,10 +50,11 @@ class EtanolDryer():
             return {"accepted": False}
 
     def dry(self):
-            sleep(self.calculate_drying_time())
+            sleep(self.calculate_drying_time()*float(config['globals']['timescale']))
 
-            self.waste += self.volume/2
-            self.volume = self.volume/2
+            amount_lost = round(self.volume*self.waste_factor, 2)
+            self.waste += amount_lost
+            self.volume -= amount_lost
 
             self.pass_content()
 
@@ -72,12 +70,10 @@ class EtanolDryer():
             self.volume = 0
         
 
-    
-# Refer to server.py for inherited class
-class ReactorSocket(Server):
+class EtanolDryerSocket():
     def __init__(self, host, port):
         self.host = host
-        self.port = port
+        self.port = int(port)
 
         self.dryer = EtanolDryer()
 
@@ -103,7 +99,7 @@ class ReactorSocket(Server):
                     data = json.loads(data.decode("utf-8"))
 
                     if (data['role'] == 'Orchestrator'):
-                        self.dryer.connect_to_tank(config['connection_host'], config['connection_port'])
+                        self.dryer.connect_to_tank(config['connection']['washing_tank1_host'], config['connection']['washing_tank1_port'])
 
                         while True:
                             try:
@@ -119,7 +115,7 @@ class ReactorSocket(Server):
                                 # send current information to client
                                 conn.sendall(bytes(json.dumps(self.dryer.serialize()), encoding='utf-8'))
 
-                                sleep(1)
+                                sleep(1*float(config['globals']['timescale']))
                                 
                             except:
                                 output = {
@@ -136,4 +132,4 @@ class ReactorSocket(Server):
                 print(f"Disconnected: {addr}")
                 return False
 
-server = ReactorSocket(config['host'], config['port']).listen()
+server = EtanolDryerSocket(config['connection']['ethanol_dryer_host'], config['connection']['ethanol_dryer_port']).listen()

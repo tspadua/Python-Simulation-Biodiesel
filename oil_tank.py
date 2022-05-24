@@ -1,17 +1,14 @@
 import socket
 from _thread import *
 from time import sleep
-from server import Server
-from chemical_tank import ChemicalTank
 import json
 import random
 
-config = {
-    "host": "localhost",
-    "port": 5000,
-    "connection_host": "localhost",
-    "connection_port": 5003
-}
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
 
 class OilTank():
     def __init__(self):
@@ -26,7 +23,7 @@ class OilTank():
 
     def connect_to_tank(self, host, port):
         self.next_container = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.next_container.connect((host, port))
+        self.next_container.connect((host, int(port)))
 
     def pour_content(self, volume):
         self.volume = round(self.volume + volume,2)
@@ -55,7 +52,7 @@ class OilTank():
 class OilTankSocket():
     def __init__(self, host, port):
         self.host = host
-        self.port = port
+        self.port = int(port)
 
         self.oil_tank = OilTank()
 
@@ -89,7 +86,7 @@ class OilTankSocket():
                     if (data['role'] == 'Orchestrator'):
 
                         try:
-                            self.oil_tank.connect_to_tank(config['connection_host'], config['connection_port'])
+                            self.oil_tank.connect_to_tank(config['connection']['reactor_host'], config['connection']['reactor_port'])
                             second_cnt = 0
                             while True:
                                 # This triggers each time 10 seconds have passed
@@ -102,7 +99,7 @@ class OilTankSocket():
                                 conn.sendall((bytes(output, encoding='utf-8')))
 
                                 self.oil_tank.pass_content()
-                                sleep(1) # process tick rate is 1 second because the flow rate is L/s
+                                sleep(1*float(config['globals']['timescale'])) # process tick rate is 1 second because the flow rate is L/s
                                 second_cnt += 1
                                 
                         except Exception as e:
@@ -116,4 +113,4 @@ class OilTankSocket():
                 print(f"Disconnected: {addr}")
                 return False
 
-server = OilTankSocket(config['host'], config['port']).listen()
+server = OilTankSocket(config['connection']['oil_tank_host'], config['connection']['oil_tank_port']).listen()

@@ -1,15 +1,12 @@
 import socket
 from _thread import *
 from time import sleep
-from server import Server
 import json
 
-config = {
-    "host": "localhost",
-    "port": 5007,
-    "connection_host": "localhost",
-    "connection_port": 9001 #5008
-}
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 class WashingTank():
 
@@ -28,37 +25,39 @@ class WashingTank():
 
     def connect_to_tank(self, host, port):
         self.next_container = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.next_container.connect((host, port))
+        self.next_container.connect((host, int(port)))
  
-    def receive_content(self, data):
-        self.solution += data["volume"]
+    def receive_and_clean_content(self, data):
 
+        emulsion = round(data["volume"]*self.waste_factor,2)
+
+        self.solution = round(self.solution + (data["volume"] - emulsion), 2)
+        self.emulsion = round(self.emulsion + emulsion, 2)
+        
         return {"accepted": True}
     
-    def clean_and_transfer(self):
-        if (self.solution >= self.flow_rate):
-            emulsion = round(self.flow_rate*self.waste_factor,2)
-
-            self.solution = round(self.solution - self.flow_rate, 2)
-            self.emulsion = round(self.emulsion + emulsion, 2)
-
-            solution_left = self.flow_rate - emulsion
+    def pass_content(self):
+        if (self.solution > 0):
+            volume = self.solution
+            if (self.solution >= self.flow_rate):
+                volume = self.flow_rate
             
+            self.solution -= volume
+
             content = {
                 "role": "Process",
                 "compound": "solution",
-                "volume": solution_left
+                "volume": volume
             }
         
             self.next_container.sendall(bytes(json.dumps(content), encoding='utf-8'))
+            
         
 
-    
-# Refer to server.py for inherited class
-class ReactorSocket(Server):
+class WashingTankSocket():
     def __init__(self, host, port):
         self.host = host
-        self.port = port
+        self.port = int(port)
 
         self.washing_tank = WashingTank()
 
@@ -84,14 +83,14 @@ class ReactorSocket(Server):
                     data = json.loads(data.decode("utf-8"))
 
                     if (data['role'] == 'Orchestrator'):
-                        self.washing_tank.connect_to_tank(config['connection_host'], config['connection_port'])
+                        self.washing_tank.connect_to_tank(config['testing_servers']['test1_host'], config['testing_servers']['test1_port'])
 
                         while True:
                             try:
                                 # send current information to client
                                 conn.sendall(bytes(json.dumps(self.washing_tank.serialize()), encoding='utf-8'))
-                                self.washing_tank.clean_and_transfer()
-                                sleep(1)
+                                self.washing_tank.pass_content()
+                                sleep(1*float(config['globals']['timescale']))
                                 
                             except:
                                 output = {
@@ -100,12 +99,13 @@ class ReactorSocket(Server):
                                     }
                                 #conn.sendall((bytes(json.dumps(output), encoding='utf-8')))
                     else:
-                        output = self.washing_tank.receive_content(data)
+                        output = self.washing_tank.receive_and_clean_content(data)
                         conn.sendall(bytes(json.dumps(output), encoding='utf-8'))
 
-            except:
+            except Exception as e:
+                print(e)
                 conn.close()
                 print(f"Disconnected: {addr}")
                 return False
 
-server = ReactorSocket(config['host'], config['port']).listen()
+server = WashingTankSocket(config['connection']['washing_tank1_host'], config['connection']['washing_tank1_port']).listen()
