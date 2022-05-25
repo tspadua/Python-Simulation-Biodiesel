@@ -16,18 +16,18 @@ config.read('config.ini')
 second_cnt = 0
 
 output = {
-    "reactor": {"EtOH": 0, "NaOH": 0, "oil": 0, "mixed_compound": 0,"status": "Waiting", "cycle_count": 0, "volume": 0},
-    "oil_tank": {"oil": 0},
-    "NaOH_tank": {"NaOH": 0},
-    "EtOH_tank": {"EtOH": 0},
-    "decanter": {"status": "Waiting", "cycle_count": 0, "mixed_compound": 0, "EtOH": 0, "glycerin": 0, "solution": 0, "volume": 0},
-    "etanol_dryer": None,
-    "glycerin_tank": None,
-    "1st_washing_tank": None,
-    "2nd_washing_tank": None,
-    "3rd_washing_tank": None,
-    "biodiesel_dryer": None,
-    "biodiesel_tank": None
+    "reactor": {"EtOH": 0.0, "NaOH": 0.0, "oil": 0.0, "mixed_compound": 0.0,"status": "Waiting", "cycle_count": 0.0, "volume": 0.0},
+    "oil_tank": {"oil": 0.0},
+    "NaOH_tank": {"NaOH": 0.0},
+    "EtOH_tank": {"EtOH": 0.0},
+    "decanter": {"status": "Waiting", "cycle_count": 0.0, "mixed_compound": 0.0, "EtOH": 0.0, "glycerin": 0.0, "solution": 0.0, "volume": 0.0},
+    "etanol_dryer": {"EtOH": 0.0, "waste": 0.0, "status": "Waiting"},
+    "glycerin_tank": {"glycerin": 0.0},
+    "1st_washing_tank": {"solution": 0.0, "emulsion": 0.0},
+    "2nd_washing_tank": {"solution": 0.0, "emulsion": 0.0},
+    "3rd_washing_tank": {"solution": 0.0, "emulsion": 0.0},
+    "biodiesel_dryer": {"biodiesel": 0.0, "waste": 0.0, "status": "Waiting"},
+    "biodiesel_tank": {"biodiesel": 0.0}
     #"test1": None,
 }
 
@@ -172,9 +172,109 @@ def start_gui():
     decanter_solution_entry = ttk.Entry(root)
     decanter_solution_entry.grid(column=3, row=16, sticky=tk.N, padx=0, pady=5) 
 
+    ##############################################################################
+
+    washing_tanks_lbl = ttk.Label(root, text="Washing Tanks")
+    washing_tanks_lbl.grid(column=1, row=6, sticky=tk.N, padx=0, pady=5)
+
+    washing_tank1_lbl = ttk.Label(root, text="Tank 1")
+    washing_tank1_lbl.grid(column=0, row=7, sticky=tk.N, padx=0, pady=5)
+    washing_tank1_solution_lbl = ttk.Label(root, text="Solution:")
+    washing_tank1_solution_lbl.grid(column=0, row=8, sticky=tk.W, padx=0, pady=5)
+    washing_tank1_solution_entry = ttk.Entry(root)
+    washing_tank1_solution_entry.grid(column=0, row=8, sticky=tk.N, padx=0, pady=0)
+    washing_tank1_emulsion_lbl = ttk.Label(root, text="Emulsion:")
+    washing_tank1_emulsion_lbl.grid(column=0, row=9, sticky=tk.W, padx=0, pady=5)
+    washing_tank1_emulsion_entry = ttk.Entry(root)
+    washing_tank1_emulsion_entry.grid(column=0, row=9, sticky=tk.N, padx=0, pady=0)
+
+    washing_tank2_lbl = ttk.Label(root, text="Tank 2")
+    washing_tank2_lbl.grid(column=1, row=7, sticky=tk.N, padx=0, pady=5)
+    washing_tank2_solution_lbl = ttk.Label(root, text="Solution:")
+    washing_tank2_solution_lbl.grid(column=1, row=8, sticky=tk.W, padx=0, pady=5)
+    washing_tank2_solution_entry = ttk.Entry(root)
+    washing_tank2_solution_entry.grid(column=1, row=8, sticky=tk.N, padx=0, pady=0)  
+    washing_tank2_emulsion_lbl = ttk.Label(root, text="Emulsion:")
+    washing_tank2_emulsion_lbl.grid(column=1, row=9, sticky=tk.W, padx=0, pady=5)
+    washing_tank2_emulsion_entry = ttk.Entry(root)
+    washing_tank2_emulsion_entry.grid(column=1, row=9, sticky=tk.N, padx=0, pady=0) 
+
+    washing_tank3_lbl = ttk.Label(root, text="Tank 3")
+    washing_tank3_lbl.grid(column=2, row=7, sticky=tk.N, padx=0, pady=5)
+    washing_tank3_solution_lbl = ttk.Label(root, text="Solution:")
+    washing_tank3_solution_lbl.grid(column=2, row=8, sticky=tk.W, padx=0, pady=5)
+    washing_tank3_solution_entry = ttk.Entry(root)
+    washing_tank3_solution_entry.grid(column=2, row=8, sticky=tk.N, padx=0, pady=0) 
+    washing_tank3_emulsion_lbl = ttk.Label(root, text="Emulsion:")
+    washing_tank3_emulsion_lbl.grid(column=2, row=9, sticky=tk.W, padx=0, pady=5)
+    washing_tank3_emulsion_entry = ttk.Entry(root)
+    washing_tank3_emulsion_entry.grid(column=2, row=9, sticky=tk.N, padx=0, pady=0) 
+
+###############################################################################
+
+    ethanol_dryer_lbl = ttk.Label(root, text="Ethanol Dryer")
+    ethanol_dryer_lbl.grid(column=0, row=12, sticky=tk.N, padx=0, pady=5)
+
+    ethanol_dryer_etoh_lbl = ttk.Label(root, text="Volume:")
+    ethanol_dryer_etoh_lbl.grid(column=0, row=13, sticky=tk.W, padx=0, pady=0)
+    ethanol_dryer_etoh_entry = ttk.Entry(root)
+    ethanol_dryer_etoh_entry.grid(column=0, row=13, sticky=tk.N, padx=0, pady=0) 
+
+    ethanol_dryer_lost_lbl = ttk.Label(root, text="Vol. lost:")
+    ethanol_dryer_lost_lbl.grid(column=0, row=14, sticky=tk.W, padx=0, pady=0)
+    ethanol_dryer_lost_entry = ttk.Entry(root)
+    ethanol_dryer_lost_entry.grid(column=0, row=14, sticky=tk.N, padx=0, pady=0) 
+
+    ethanol_dryer_status_lbl = ttk.Label(root, text="Status:")
+    ethanol_dryer_status_lbl.grid(column=0, row=15, sticky=tk.W, padx=0, pady=0)
+    ethanol_dryer_status_entry = ttk.Entry(root)
+    ethanol_dryer_status_entry.grid(column=0, row=15, sticky=tk.N, padx=0, pady=0) 
+
+    ################################################################################
+
+    biodiesel_dryer_lbl = ttk.Label(root, text="Biodiesel Dryer")
+    biodiesel_dryer_lbl.grid(column=1, row=12, sticky=tk.N, padx=0, pady=5)
+
+    biodiesel_dryer_vol_lbl = ttk.Label(root, text="Volume:")
+    biodiesel_dryer_vol_lbl.grid(column=1, row=13, sticky=tk.W, padx=0, pady=0)
+    biodiesel_dryer_vol_entry = ttk.Entry(root)
+    biodiesel_dryer_vol_entry.grid(column=1, row=13, sticky=tk.N, padx=0, pady=0) 
+
+    biodiesel_dryer_lost_lbl = ttk.Label(root, text="Vol. lost:")
+    biodiesel_dryer_lost_lbl.grid(column=1, row=14, sticky=tk.W, padx=0, pady=0)
+    biodiesel_dryer_lost_entry = ttk.Entry(root)
+    biodiesel_dryer_lost_entry.grid(column=1, row=14, sticky=tk.N, padx=0, pady=0) 
+
+    biodiesel_dryer_status_lbl = ttk.Label(root, text="Status:")
+    biodiesel_dryer_status_lbl.grid(column=1, row=15, sticky=tk.W, padx=0, pady=0)
+    biodiesel_dryer_status_entry = ttk.Entry(root)
+    biodiesel_dryer_status_entry.grid(column=1, row=15, sticky=tk.N, padx=0, pady=0) 
+    
+    ##########################################################################################
+
+    glycerin_tank_lbl = ttk.Label(root, text="Glycerin Tank")
+    glycerin_tank_lbl.grid(column=0, row=17, sticky=tk.N, padx=0, pady=0)
+
+    glycerin_tank_vol_lbl = ttk.Label(root, text="Volume:")
+    glycerin_tank_vol_lbl.grid(column=0, row=18, sticky=tk.W, padx=0, pady=0)
+
+    glycerin_tank_vol_entry = ttk.Entry(root)
+    glycerin_tank_vol_entry.grid(column=0, row=18, sticky=tk.N, padx=0, pady=5) 
+
+##########################################################################################
+
+    biodiesel_tank_lbl = ttk.Label(root, text="Biodiesel Tank")
+    biodiesel_tank_lbl.grid(column=1, row=17, sticky=tk.N, padx=0, pady=0)
+
+    biodiesel_tank_vol_lbl = ttk.Label(root, text="Volume:")
+    biodiesel_tank_vol_lbl.grid(column=1, row=18, sticky=tk.W, padx=0, pady=0)
+
+    biodiesel_tank_vol_entry = ttk.Entry(root)
+    biodiesel_tank_vol_entry.grid(column=1, row=18, sticky=tk.N, padx=0, pady=5) 
+
     def update_gui():
         if (second_cnt < int(config["globals"]["end_time"])):
-            print("hm")
+            
             oil_tank_vol_entry.delete(0, 'end')
             oil_tank_vol_entry.insert(0, str(round(output["oil_tank"]["oil"], 3)) + "L")
 
@@ -230,6 +330,54 @@ def start_gui():
             decanter_solution_entry.delete(0, 'end')
             decanter_solution_entry.insert(0, str(round(output["decanter"]["solution"], 3)) + "L")
             
+            ##################################################################################
+            ethanol_dryer_etoh_entry.delete(0, 'end')
+            ethanol_dryer_etoh_entry.insert(0, str(round(output["etanol_dryer"]["EtOH"], 3)) + "L")
+            
+            ethanol_dryer_lost_entry.delete(0, 'end')
+            ethanol_dryer_lost_entry.insert(0, str(round(output["etanol_dryer"]["waste"], 3)) + "L")
+
+            ethanol_dryer_status_entry.delete(0, 'end')
+            ethanol_dryer_status_entry.insert(0, output["etanol_dryer"]["status"])
+            
+            ##################################################################################
+            biodiesel_dryer_vol_entry.delete(0, 'end')
+            biodiesel_dryer_vol_entry.insert(0, str(round(output["biodiesel_dryer"]["biodiesel"], 3)) + "L")
+            
+            biodiesel_dryer_lost_entry.delete(0, 'end')
+            biodiesel_dryer_lost_entry.insert(0, str(round(output["biodiesel_dryer"]["waste"], 3)) + "L")
+
+            biodiesel_dryer_status_entry.delete(0, 'end')
+            biodiesel_dryer_status_entry.insert(0, output["biodiesel_dryer"]["status"])
+
+            ########################################## washing tanks ########################
+
+            washing_tank1_solution_entry.delete(0, 'end')
+            washing_tank1_solution_entry.insert(0, str(round(output["1st_washing_tank"]["solution"], 3)) + "L")
+            washing_tank1_emulsion_entry.delete(0, 'end')
+            washing_tank1_emulsion_entry.insert(0, str(round(output["1st_washing_tank"]["emulsion"], 3)) + "L")
+
+            washing_tank2_solution_entry.delete(0, 'end')
+            washing_tank2_solution_entry.insert(0, str(round(output["1st_washing_tank"]["solution"], 3)) + "L")
+            washing_tank2_emulsion_entry.delete(0, 'end')
+            washing_tank2_emulsion_entry.insert(0, str(round(output["1st_washing_tank"]["emulsion"], 3)) + "L")
+
+            washing_tank3_solution_entry.delete(0, 'end')
+            washing_tank3_solution_entry.insert(0, str(round(output["1st_washing_tank"]["solution"], 3)) + "L")
+            washing_tank3_emulsion_entry.delete(0, 'end')
+            washing_tank3_emulsion_entry.insert(0, str(round(output["1st_washing_tank"]["emulsion"], 3)) + "L")
+
+            ################################################################################
+
+            glycerin_tank_vol_entry.delete(0, 'end')
+            glycerin_tank_vol_entry.insert(0, str(round(output["glycerin_tank"]["glycerin"], 3)) + "L")
+
+            ################################################################################            
+            
+            biodiesel_tank_vol_entry.delete(0, 'end')
+            biodiesel_tank_vol_entry.insert(0, str(round(output["biodiesel_tank"]["biodiesel"], 3)) + "L")
+
+
             root.after(int(1000*float(config['globals']['timescale'])), update_gui)  # run again after 1000ms (1s)
         else:
             pass
