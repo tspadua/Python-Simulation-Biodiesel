@@ -272,6 +272,14 @@ def start_gui():
     biodiesel_tank_vol_entry = ttk.Entry(root)
     biodiesel_tank_vol_entry.grid(column=1, row=18, sticky=tk.N, padx=0, pady=5) 
 
+    ##########################################################################################
+
+    app_time_lbl = ttk.Label(root, text="Time:")
+    app_time_lbl.grid(column=3, row=20, sticky=tk.W, padx=0, pady=200)
+
+    app_time_entry = ttk.Entry(root)
+    app_time_entry.grid(column=3, row=20, sticky=tk.N, padx=0, pady=200) 
+
     def update_gui():
         if (second_cnt < int(config["globals"]["end_time"])):
             
@@ -358,14 +366,14 @@ def start_gui():
             washing_tank1_emulsion_entry.insert(0, str(round(output["1st_washing_tank"]["emulsion"], 3)) + "L")
 
             washing_tank2_solution_entry.delete(0, 'end')
-            washing_tank2_solution_entry.insert(0, str(round(output["1st_washing_tank"]["solution"], 3)) + "L")
+            washing_tank2_solution_entry.insert(0, str(round(output["2nd_washing_tank"]["solution"], 3)) + "L")
             washing_tank2_emulsion_entry.delete(0, 'end')
-            washing_tank2_emulsion_entry.insert(0, str(round(output["1st_washing_tank"]["emulsion"], 3)) + "L")
+            washing_tank2_emulsion_entry.insert(0, str(round(output["2nd_washing_tank"]["emulsion"], 3)) + "L")
 
             washing_tank3_solution_entry.delete(0, 'end')
-            washing_tank3_solution_entry.insert(0, str(round(output["1st_washing_tank"]["solution"], 3)) + "L")
+            washing_tank3_solution_entry.insert(0, str(round(output["3rd_washing_tank"]["solution"], 3)) + "L")
             washing_tank3_emulsion_entry.delete(0, 'end')
-            washing_tank3_emulsion_entry.insert(0, str(round(output["1st_washing_tank"]["emulsion"], 3)) + "L")
+            washing_tank3_emulsion_entry.insert(0, str(round(output["3rd_washing_tank"]["emulsion"], 3)) + "L")
 
             ################################################################################
 
@@ -377,7 +385,8 @@ def start_gui():
             biodiesel_tank_vol_entry.delete(0, 'end')
             biodiesel_tank_vol_entry.insert(0, str(round(output["biodiesel_tank"]["biodiesel"], 3)) + "L")
 
-
+            app_time_entry.delete(0, 'end')
+            app_time_entry.insert(0, str(second_cnt + 1) + "s")
             root.after(int(1000*float(config['globals']['timescale'])), update_gui)  # run again after 1000ms (1s)
         else:
             pass
