@@ -399,20 +399,10 @@ try:
     start_new_thread(start_gui, ())
 
     start_new_thread(connectToServer, (
-        config['connection']['decanter_host'],
-        config['connection']['decanter_port'],
-        {"role": "Orchestrator"}, "decanter"))
-
-    start_new_thread(connectToServer, (
-        config['connection']['reactor_host'],
-        config['connection']['reactor_port'],
-        {"role": "Orchestrator"}, "reactor"))
-
-    start_new_thread(connectToServer, (
         config['connection']['oil_tank_host'],
         config['connection']['oil_tank_port'],
         {"role": "Orchestrator"}, "oil_tank"))
-    
+
     start_new_thread(connectToServer, (
         config['connection']['caustic_soda_tank_host'],
         config['connection']['caustic_soda_tank_port'],
@@ -422,6 +412,16 @@ try:
         config['connection']['ethanol_tank_host'],
         config['connection']['ethanol_tank_port'],
         {"role": "Orchestrator"}, "EtOH_tank"))
+
+    start_new_thread(connectToServer, (
+    config['connection']['reactor_host'],
+    config['connection']['reactor_port'],
+    {"role": "Orchestrator"}, "reactor"))
+
+    start_new_thread(connectToServer, (
+        config['connection']['decanter_host'],
+        config['connection']['decanter_port'],
+        {"role": "Orchestrator"}, "decanter"))
 
     start_new_thread(connectToServer, (
         config['connection']['ethanol_dryer_host'],

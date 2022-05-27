@@ -9,7 +9,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 class Decanter():
-    def __init__(self, capacity = 10, rest_time = 5):
+    def __init__(self, capacity = 5, rest_time = 5):
         self.capacity = capacity
         self.rest_time = rest_time
         self.status = "Waiting"

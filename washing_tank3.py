@@ -41,8 +41,6 @@ class WashingTank():
             volume = self.solution
             if (self.solution >= self.flow_rate):
                 volume = self.flow_rate
-            
-            self.solution -= volume
 
             content = {
                 "role": "Process",
@@ -51,6 +49,12 @@ class WashingTank():
             }
         
             self.next_container.sendall(bytes(json.dumps(content), encoding='utf-8'))
+
+            response = self.next_container.recv(1024)
+            response = json.loads(response.decode("utf-8"))
+            
+            if (response["accepted"]):
+                self.solution -= volume
             
         
 

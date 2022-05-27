@@ -10,21 +10,19 @@ config.read('config.ini')
 
 class EtanolDryer():
 
-    def __init__(self, waste_factor = 0.05, time_per_liter = 5, threshold = 1):
-        self.status = "Waiting"
+    def __init__(self, waste_factor = 0.05, time_per_liter = 5):
         self.next_container = None
-        self.threshold = threshold
         self.time_per_liter = time_per_liter
         self.waste_factor = waste_factor
         self.volume = 0
         self.waste = 0
     
     @property
-    def should_start_process(self):
-        if ((self.status == "Waiting") and (self.volume >= self.threshold)):
-            return True
+    def status(self):
+        if ((self.volume > 0)):
+            return "Working"
         else:
-            return False
+            return "Waiting"
 
     def serialize(self):
         return {
@@ -42,32 +40,36 @@ class EtanolDryer():
         self.next_container.connect((host, int(port)))
  
     def receive_content(self, data):
-        if (self.status == "Waiting"):
-            self.volume += data["volume"]
+        self.volume += data["volume"]
 
-            return {"accepted": True}
-        else:
-            return {"accepted": False}
+        return {"accepted": True}
 
     def dry(self):
+        flow_rate = 1
+        
+        current_volume = self.volume
+        if (current_volume < 1):
+            flow_rate = current_volume
             sleep(self.calculate_drying_time()*float(config['globals']['timescale']))
+        else:
+            sleep(self.time_per_liter*float(config['globals']['timescale']))
 
-            amount_lost = self.volume*self.waste_factor
-            self.waste += amount_lost
-            self.volume -= amount_lost
+        amount_lost = flow_rate*self.waste_factor
 
-            self.pass_content()
+        self.waste += amount_lost
+        flow_rate -= amount_lost
+
+        self.pass_content(flow_rate, amount_lost)
 
     
-    def pass_content(self):
+    def pass_content(self, flow_rate, amount_lost):
             content = {
                 "role": "Process",
                 "compound": "EtOH",
                 "volume": self.volume
             }
+            self.volume -= (flow_rate + amount_lost)
             self.next_container.sendall(bytes(json.dumps(content), encoding='utf-8'))
-
-            self.volume = 0
         
 
 class EtanolDryerSocket():
@@ -104,17 +106,15 @@ class EtanolDryerSocket():
                         while True:
                             try:
 
-                                if (self.dryer.should_start_process):
-
-                                    self.dryer.status = "Working"
+                                if (self.dryer.status == "Working"):
                                     # Update client about working status
                                     conn.sendall(bytes(json.dumps(self.dryer.serialize()), encoding='utf-8'))
                                     self.dryer.dry()
-                                    self.dryer.status = "Waiting"
-                                else:
-                                    # send current information to client
-                                    conn.sendall(bytes(json.dumps(self.dryer.serialize()), encoding='utf-8'))
-                                    sleep(1*float(config['globals']['timescale']))
+
+                                # send current information to client
+                                conn.sendall(bytes(json.dumps(self.dryer.serialize()), encoding='utf-8'))
+
+                                sleep(1*float(config['globals']['timescale']))
                                 
                             except:
                                 output = {
